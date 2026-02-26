@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-# Page Config
 st.set_page_config(
     page_title="Intelligent Solar Forecasting",
     page_icon="🌞",
@@ -14,7 +13,7 @@ st.set_page_config(
 )
 
 
-# Header
+
 st.markdown("""
 # Intelligent Solar Energy Forecasting
 ### From Data Analytics to Renewable Energy Insights
@@ -22,7 +21,7 @@ st.markdown("""
 
 st.markdown("---")
 
-# Sidebar
+
 st.sidebar.header("📂 Upload Data Files")
 
 gen_file = st.sidebar.file_uploader("Upload Generation Data", type=["csv"])
@@ -46,7 +45,7 @@ st.sidebar.info("Model: Random Forest Regressor\n\nFeatures: Weather + Temporal 
 
 
 with st.spinner("Processing and Training Model..."):
-    # Convert date
+
     gen['DATE_TIME'] = pd.to_datetime(gen['DATE_TIME'])
     weather['DATE_TIME'] = pd.to_datetime(weather['DATE_TIME'])
 
@@ -104,7 +103,7 @@ with st.spinner("Processing and Training Model..."):
 
     st.success("Model Training Complete ")
 
-    # Metrics Section
+
     st.markdown("##  Model Performance")
     col1, col2 = st.columns(2)
 
