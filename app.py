@@ -27,6 +27,17 @@ st.sidebar.header("📂 Upload Data Files")
 gen_file = st.sidebar.file_uploader("Upload Generation Data", type=["csv"])
 weather_file = st.sidebar.file_uploader("Upload Weather Data", type=["csv"])
 
+
+#would work even if no fiels are uploaded
+if gen_file is None or weather_file is None:
+    st.sidebar.info("Using sample dataset")
+    gen = pd.read_csv("data/sample_generation.csv")
+    weather = pd.read_csv("data/sample_weather.csv")
+else:
+    gen = pd.read_csv(gen_file)
+    weather = pd.read_csv(weather_file)
+
+
 st.sidebar.markdown("---")
 st.sidebar.info("Model: Random Forest Regressor\n\nFeatures: Weather + Temporal + Lag")
 
