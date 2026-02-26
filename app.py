@@ -94,7 +94,7 @@ with st.spinner("Processing and Training Model..."):
         max_depth=15,
         random_state=42
     )
-
+    #Training
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
 
@@ -126,7 +126,7 @@ with st.spinner("Processing and Training Model..."):
 
     st.markdown("---")
 
-    # Feature Importance
+    # Feature Importance Graph
     st.markdown("##  Feature Importance")
 
     fig2, ax2 = plt.subplots(figsize=(8,5))
