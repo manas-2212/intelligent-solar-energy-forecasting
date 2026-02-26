@@ -13,6 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # Header
 st.markdown("""
 # Intelligent Solar Energy Forecasting
@@ -27,77 +28,79 @@ st.sidebar.header("📂 Upload Data Files")
 gen_file = st.sidebar.file_uploader("Upload Generation Data", type=["csv"])
 weather_file = st.sidebar.file_uploader("Upload Weather Data", type=["csv"])
 
-
 #would work even if no fiels are uploaded
-if gen_file is None or weather_file is None:
+
+if gen_file is None and weather_file is None:
     st.sidebar.info("Using sample dataset")
     gen = pd.read_csv("data/sample_generation.csv")
     weather = pd.read_csv("data/sample_weather.csv")
-else:
+elif gen_file is not None and weather_file is not None:
     gen = pd.read_csv(gen_file)
     weather = pd.read_csv(weather_file)
-
+else:
+    st.warning("Please upload BOTH generation and weather files.")
+    st.stop()
 
 st.sidebar.markdown("---")
 st.sidebar.info("Model: Random Forest Regressor\n\nFeatures: Weather + Temporal + Lag")
 
-if gen_file and weather_file:
-    with st.spinner("Processing and Training Model..."):
 
-        # Convert date
-        gen['DATE_TIME'] = pd.to_datetime(gen['DATE_TIME'])
-        weather['DATE_TIME'] = pd.to_datetime(weather['DATE_TIME'])
+with st.spinner("Processing and Training Model..."):
+    # Convert date
+    gen['DATE_TIME'] = pd.to_datetime(gen['DATE_TIME'])
+    weather['DATE_TIME'] = pd.to_datetime(weather['DATE_TIME'])
 
-        df = pd.merge(gen, weather, on='DATE_TIME')
-        df = df.sort_values('DATE_TIME')
-        df = df.fillna(method='ffill')
-
-        # Feature Engineering
-        df['hour'] = df['DATE_TIME'].dt.hour
-        df['month'] = df['DATE_TIME'].dt.month
-
-        df['prev_1'] = df['AC_POWER'].shift(1)
-        df['prev_2'] = df['AC_POWER'].shift(2)
-        df['prev_3'] = df['AC_POWER'].shift(3)
-
-        df = df.dropna()
-
-        features = [
-            'AMBIENT_TEMPERATURE',
-            'MODULE_TEMPERATURE',
-            'IRRADIATION',
-            'hour',
-            'month',
-            'prev_1',
-            'prev_2',
-            'prev_3'
-        ]
-
-        X = df[features]
-        y = df['AC_POWER']
-
-        # SCALING (not necessary)
-        from sklearn.preprocessing import StandardScaler
-
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+    df = pd.merge(gen, weather, on='DATE_TIME')
+    df = df.sort_values('DATE_TIME')
+    df = df.fillna(method='ffill')
 
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_scaled, y, test_size=0.2, shuffle=False
-        )
+    # Feature Engineering
+    df['hour'] = df['DATE_TIME'].dt.hour
+    df['month'] = df['DATE_TIME'].dt.month
 
-        model = RandomForestRegressor(
-            n_estimators=200,
-            max_depth=15,
-            random_state=42
-        )
+    df['prev_1'] = df['AC_POWER'].shift(1)
+    df['prev_2'] = df['AC_POWER'].shift(2)
+    df['prev_3'] = df['AC_POWER'].shift(3)
 
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
+    df = df.dropna()
 
-        mae = mean_absolute_error(y_test, predictions)
-        rmse = np.sqrt(mean_squared_error(y_test, predictions))
+    features = [
+        'AMBIENT_TEMPERATURE',
+        'MODULE_TEMPERATURE',
+        'IRRADIATION',
+        'hour',
+        'month',
+        'prev_1',
+        'prev_2',
+        'prev_3'
+    ]
+
+    X = df[features]
+    y = df['AC_POWER']
+
+    # SCALING (not necessary)
+    from sklearn.preprocessing import StandardScaler
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, shuffle=False
+    )
+
+    model = RandomForestRegressor(
+        n_estimators=200,
+        max_depth=15,
+        random_state=42
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+
+    mae = mean_absolute_error(y_test, predictions)
+    rmse = np.sqrt(mean_squared_error(y_test, predictions))
 
     st.success("Model Training Complete ")
 
