@@ -42,63 +42,62 @@ st.sidebar.markdown("---")
 st.sidebar.info("Model: Random Forest Regressor\n\nFeatures: Weather + Temporal + Lag")
 
 if gen_file and weather_file:
+    with st.spinner("Processing and Training Model..."):
 
-with st.spinner("Processing and Training Model..."):
+        # Convert date
+        gen['DATE_TIME'] = pd.to_datetime(gen['DATE_TIME'])
+        weather['DATE_TIME'] = pd.to_datetime(weather['DATE_TIME'])
 
-    # Convert date
-    gen['DATE_TIME'] = pd.to_datetime(gen['DATE_TIME'])
-    weather['DATE_TIME'] = pd.to_datetime(weather['DATE_TIME'])
+        df = pd.merge(gen, weather, on='DATE_TIME')
+        df = df.sort_values('DATE_TIME')
+        df = df.fillna(method='ffill')
 
-    df = pd.merge(gen, weather, on='DATE_TIME')
-    df = df.sort_values('DATE_TIME')
-    df = df.fillna(method='ffill')
+        # Feature Engineering
+        df['hour'] = df['DATE_TIME'].dt.hour
+        df['month'] = df['DATE_TIME'].dt.month
 
-    # Feature Engineering
-    df['hour'] = df['DATE_TIME'].dt.hour
-    df['month'] = df['DATE_TIME'].dt.month
+        df['prev_1'] = df['AC_POWER'].shift(1)
+        df['prev_2'] = df['AC_POWER'].shift(2)
+        df['prev_3'] = df['AC_POWER'].shift(3)
 
-    df['prev_1'] = df['AC_POWER'].shift(1)
-    df['prev_2'] = df['AC_POWER'].shift(2)
-    df['prev_3'] = df['AC_POWER'].shift(3)
+        df = df.dropna()
 
-    df = df.dropna()
+        features = [
+            'AMBIENT_TEMPERATURE',
+            'MODULE_TEMPERATURE',
+            'IRRADIATION',
+            'hour',
+            'month',
+            'prev_1',
+            'prev_2',
+            'prev_3'
+        ]
 
-    features = [
-        'AMBIENT_TEMPERATURE',
-        'MODULE_TEMPERATURE',
-        'IRRADIATION',
-        'hour',
-        'month',
-        'prev_1',
-        'prev_2',
-        'prev_3'
-    ]
+        X = df[features]
+        y = df['AC_POWER']
 
-    X = df[features]
-    y = df['AC_POWER']
+        # SCALING (not necessary)
+        from sklearn.preprocessing import StandardScaler
 
-    # SCALING (not necessary)
-    from sklearn.preprocessing import StandardScaler
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
 
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, shuffle=False
-    )
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_scaled, y, test_size=0.2, shuffle=False
+        )
 
-    model = RandomForestRegressor(
-        n_estimators=200,
-        max_depth=15,
-        random_state=42
-    )
+        model = RandomForestRegressor(
+            n_estimators=200,
+            max_depth=15,
+            random_state=42
+        )
 
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+        model.fit(X_train, y_train)
+        predictions = model.predict(X_test)
 
-    mae = mean_absolute_error(y_test, predictions)
-    rmse = np.sqrt(mean_squared_error(y_test, predictions))
+        mae = mean_absolute_error(y_test, predictions)
+        rmse = np.sqrt(mean_squared_error(y_test, predictions))
 
     st.success("Model Training Complete ")
 
