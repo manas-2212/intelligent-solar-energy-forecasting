@@ -22,3 +22,4 @@ This project forecasts solar AC power generation using weather parameters and ti
 
 ## Deployment
 Hosted on Streamlit Cloud.
+https://intelligent-solar-energy-forecasting-y6fpajnbvsdecdhgbhuvkf.streamlit.app/
